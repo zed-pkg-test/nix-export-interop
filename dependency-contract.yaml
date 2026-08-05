@@ -1,0 +1,31 @@
+schema_version: 1
+readiness: ready
+primary_upstream: zed-pkg/zed-cli
+upstream_repositories:
+- zed-pkg/zed-cli
+- zed-pkg/zed-interfaces
+planned_upstream_repositories: []
+primary_strategy: matrix
+supported_modes:
+- git-submodule
+- zed
+- native-package
+git:
+  url: https://github.com/zed-pkg/zed-cli.git
+  path: vendor/upstream/zed-cli
+  materialize_during_provisioning: true
+  owner: zed-pkg
+zed:
+  package: null
+  manifest: .zpkg.toml
+  install_dir: .vendor/.zed
+  discover_from_upstream_manifest: true
+native:
+  language: null
+  package: null
+  consumer_directory: consumer
+github_actions_private_upstream_auth:
+  app_id_variable: CROSS_ORG_APP_ID
+  private_key_secret: CROSS_ORG_APP_PRIVATE_KEY
+  installation_token_action: actions/create-github-app-token@v2
+  additional_owners: []

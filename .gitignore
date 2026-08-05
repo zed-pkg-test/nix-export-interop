@@ -1,0 +1,17 @@
+.venv/
+.venv-consumer/
+__pycache__/
+.pytest_cache/
+artifacts/
+vendor/
+.vendor/
+node_modules/
+target/
+build/
+.dart_tool/
+.env
+.env.*
+
+# github-test-org-factory: track materialized upstream submodules
+!vendor/
+!vendor/**

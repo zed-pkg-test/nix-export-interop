@@ -1,0 +1,50 @@
+schema_version: 1
+managed_by: github-test-org-factory/1.0.0
+production_org: zed-pkg
+test_org: zed-pkg-test
+repository: nix-export-interop
+kind: package
+readiness: ready
+objectives:
+- Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds across the supported happy-path
+  states and canonical fixtures.
+- Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds under retries, interruption,
+  concurrency, offline operation, or partial failure.
+- Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds preserves authorization, idempotency,
+  integrity, observability, and actionable failure classification.
+always_on_checks:
+- Validate test-plan and dependency metadata.
+- Validate generated fixture and workflow syntax.
+- Classify missing upstreams or credentials separately from product regressions.
+schedule_utc: 17 5 * * *
+expensive: true
+required_infrastructure:
+- Nix
+cases:
+- id: TC-001
+  title: Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds across the supported
+    happy-path states and canonical fixtures.
+  tier: scheduled-live
+  status: planned
+  evidence:
+  - junit
+  - readiness JSON
+  - workflow artifacts
+- id: TC-002
+  title: Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds under retries, interruption,
+    concurrency, offline operation, or partial failure.
+  tier: scheduled-live
+  status: planned
+  evidence:
+  - junit
+  - readiness JSON
+  - workflow artifacts
+- id: TC-003
+  title: Verify deterministic Zed-to-Nix export, immutable hashes, and repeatable offline builds preserves authorization,
+    idempotency, integrity, observability, and actionable failure classification.
+  tier: scheduled-live
+  status: planned
+  evidence:
+  - junit
+  - readiness JSON
+  - workflow artifacts

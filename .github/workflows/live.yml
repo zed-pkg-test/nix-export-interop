@@ -1,0 +1,42 @@
+name: Live acceptance
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: live-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      CROSS_ORG_APP_ID: ${{ vars.CROSS_ORG_APP_ID }}
+      CROSS_ORG_APP_PRIVATE_KEY: ${{ secrets.CROSS_ORG_APP_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: app-token
+        if: env.CROSS_ORG_APP_ID != '' && env.CROSS_ORG_APP_PRIVATE_KEY != ''
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ env.CROSS_ORG_APP_ID }}
+          private-key: ${{ env.CROSS_ORG_APP_PRIVATE_KEY }}
+          owner: zed-pkg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[test]'
+      - name: Run live suite
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        run: ./scripts/run-live.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-evidence-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,16 @@
+[package]
+org = "zed-pkg-test"
+name = "nix-export-interop"
+version = "0.1.0"
+description = "Independent package acceptance harness"
+license = "MIT"
+
+[package.repository]
+vcs = "git"
+url = "https://github.com/zed-pkg-test/nix-export-interop"
+
+[install]
+dir = ".vendor/.zed"
+
+[publish]
+exclude = ["artifacts/**", "vendor/**", ".vendor/**", ".env", ".env.*"]
