@@ -16,7 +16,7 @@ jobs:
       CROSS_ORG_APP_ID: ${{ vars.CROSS_ORG_APP_ID }}
       CROSS_ORG_APP_PRIVATE_KEY: ${{ secrets.CROSS_ORG_APP_PRIVATE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: app-token
         if: env.CROSS_ORG_APP_ID != '' && env.CROSS_ORG_APP_PRIVATE_KEY != ''
         uses: actions/create-github-app-token@v3
