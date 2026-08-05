@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: app-token
         if: env.CROSS_ORG_APP_ID != '' && env.CROSS_ORG_APP_PRIVATE_KEY != ''
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ env.CROSS_ORG_APP_ID }}
           private-key: ${{ env.CROSS_ORG_APP_PRIVATE_KEY }}
