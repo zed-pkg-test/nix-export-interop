@@ -1,0 +1,3 @@
+[submodule "vendor/upstream/zed-cli"]
+	path = vendor/upstream/zed-cli
+	url = https://github.com/zed-pkg/zed-cli.git

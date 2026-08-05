@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "upstream": "zed-pkg/zed-cli",
+  "url": "https://github.com/zed-pkg/zed-cli.git",
+  "path": "vendor/upstream/zed-cli",
+  "commit": "d0f70105d13ff1d3fddf7671bac50940f14d69a6"
+}
