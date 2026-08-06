@@ -15,3 +15,7 @@ build/
 # github-test-org-factory: track materialized upstream submodules
 !vendor/
 !vendor/**
+tmp
+temp
+tmp/worktrees
+temp/worktrees
