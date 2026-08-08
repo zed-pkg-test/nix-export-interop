@@ -7,6 +7,7 @@ on:
       - scripts/certify_nix_daemon_readiness.py
       - canaries/macos-nix-daemon-readiness.json
       - contracts/macos-nix-daemon-readiness.md
+      - pyproject.toml
   workflow_dispatch:
     inputs:
       candidate:
@@ -108,6 +109,7 @@ jobs:
         run: |
           set -euo pipefail
           find scripts -type d -name __pycache__ -prune -exec rm -rf {} +
+          printf '/product/zed-cli/\n' >> .git/info/exclude
           git diff --exit-code
           git status --porcelain=v1 --untracked-files=all | tee "$RUNNER_TEMP/harness-status.txt"
           test ! -s "$RUNNER_TEMP/harness-status.txt"
