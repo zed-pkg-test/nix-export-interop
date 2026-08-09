@@ -1,0 +1,26 @@
+{
+  "schema": "zed-pkg-test/nix-candidate/v1",
+  "name": "macos-nix-daemon-readiness",
+  "candidate_repository": "zed-pkg/zed-cli",
+  "candidate_pull_request": 251,
+  "candidate": "55fd623730272f249f54fd614c1a3a79269dff2b",
+  "workflow": ".github/workflows/nix-interop.yml",
+  "platforms": [
+    "ubuntu-24.04",
+    "macos-15"
+  ],
+  "claims": [
+    "the exact product readiness shell block is extracted and executed",
+    "Linux ordinary store ping succeeds without daemon-only assumptions",
+    "macOS retries the installed Nix daemon with a finite 20-attempt bound",
+    "macOS exports NIX_REMOTE=daemon only after a successful daemon ping",
+    "the product repository evaluates its locked Nixpkgs input after readiness",
+    "the Nix client does not fall back to root-owned direct store database access"
+  ],
+  "non_claims": [
+    "complete frozen package graph execution",
+    "Nix daemon recovery from a permanently broken installation",
+    "self-hosted macOS runner behavior",
+    "multi-user Nix installation outside GitHub-hosted runners"
+  ]
+}
