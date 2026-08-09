@@ -1,0 +1,128 @@
+name: macOS Nix daemon readiness canary
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/macos-nix-daemon-readiness.yml
+      - scripts/certify_nix_daemon_readiness.py
+      - canaries/macos-nix-daemon-readiness.json
+      - contracts/macos-nix-daemon-readiness.md
+      - pyproject.toml
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Full immutable zed-pkg/zed-cli commit to certify
+        required: false
+        default: 55fd623730272f249f54fd614c1a3a79269dff2b
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-nix-daemon-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  ZED_CLI_COMMIT: ${{ inputs.candidate || '55fd623730272f249f54fd614c1a3a79269dff2b' }}
+
+jobs:
+  readiness:
+    name: Nix store readiness / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+
+    steps:
+      - name: Check out independent Nix harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          show-progress: false
+          submodules: false
+
+      - name: Check out exact product workflow candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: zed-pkg/zed-cli
+          ref: ${{ env.ZED_CLI_COMMIT }}
+          path: product/zed-cli
+          fetch-depth: 1
+          persist-credentials: false
+          show-progress: false
+          submodules: false
+
+      - name: Install Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify exact candidate and extract its literal readiness script
+        run: |
+          set -euo pipefail
+          [[ "$ZED_CLI_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git -C product/zed-cli rev-parse HEAD)" = "$ZED_CLI_COMMIT"
+          grep -F '"candidate": "'"$ZED_CLI_COMMIT"'"' canaries/macos-nix-daemon-readiness.json
+          python -m py_compile scripts/certify_nix_daemon_readiness.py
+          python scripts/certify_nix_daemon_readiness.py extract \
+            --workflow product/zed-cli/.github/workflows/nix-interop.yml \
+            --output "$RUNNER_TEMP/nix-store-readiness.sh" \
+            | tee "$RUNNER_TEMP/extraction.json"
+          bash -n "$RUNNER_TEMP/nix-store-readiness.sh"
+          if grep -R -nE \
+            'ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+|lin_api_[A-Za-z0-9]+|cfat_[A-Za-z0-9_-]+|AKIA[0-9A-Z]{16}' \
+            .github/workflows/macos-nix-daemon-readiness.yml \
+            scripts/certify_nix_daemon_readiness.py \
+            canaries/macos-nix-daemon-readiness.json \
+            contracts/macos-nix-daemon-readiness.md; then
+            echo 'credential-shaped value found in Nix certification source' >&2
+            exit 1
+          fi
+
+      - name: Install the same pinned Nix action as the product workflow
+        uses: cachix/install-nix-action@8aa03977d8d733052d78f4e008a241fd1dbf36b3
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = false
+
+      - name: Execute the exact product readiness shell block
+        run: bash "$RUNNER_TEMP/nix-store-readiness.sh"
+
+      - name: Certify store and locked repository evaluation
+        run: |
+          set -euo pipefail
+          python scripts/certify_nix_daemon_readiness.py evidence \
+            --candidate "$ZED_CLI_COMMIT" \
+            --product product/zed-cli \
+            --extracted "$RUNNER_TEMP/nix-store-readiness.sh" \
+            --output "artifacts/nix-daemon-${RUNNER_OS}-${RUNNER_ARCH}.json"
+
+      - name: Require clean source checkouts
+        run: |
+          set -euo pipefail
+          find scripts -type d -name __pycache__ -prune -exec rm -rf {} +
+          printf '/product/zed-cli/\n' >> .git/info/exclude
+          git diff --exit-code
+          git status --porcelain=v1 --untracked-files=all | tee "$RUNNER_TEMP/harness-status.txt"
+          test ! -s "$RUNNER_TEMP/harness-status.txt"
+          git -C product/zed-cli diff --exit-code
+          git -C product/zed-cli status --porcelain=v1 --untracked-files=all \
+            | tee "$RUNNER_TEMP/product-status.txt"
+          test ! -s "$RUNNER_TEMP/product-status.txt"
+
+      - name: Upload exact-head evidence
+        if: ${{ always() && !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: nix-daemon-readiness-${{ runner.os }}-${{ runner.arch }}-${{ env.ZED_CLI_COMMIT }}
+          path: artifacts/nix-daemon-${{ runner.os }}-${{ runner.arch }}.json
+          if-no-files-found: warn
+          retention-days: 14
