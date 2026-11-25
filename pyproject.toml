@@ -6,7 +6,7 @@ build-backend="setuptools.build_meta"
 name="nix-export-interop-harness"
 version="0.1.0"
 requires-python=">=3.11"
-dependencies=["PyYAML>=6.0.3,<7"]
+dependencies=["PyYAML>=6.0.4,<7"]
 
 [project.optional-dependencies]
 test=["pytest>=9.2.0,<10"]
